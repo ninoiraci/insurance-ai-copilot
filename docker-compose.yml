@@ -1,0 +1,91 @@
+# One-command local stack: PostgreSQL + pgvector, Flask API, React frontend.
+#
+#   cp .env.example .env && docker compose up --build
+#   → frontend  http://localhost:5173
+#   → API       http://localhost:5001/api/health
+#
+# The API container waits for Postgres, applies migrations, seeds the synthetic
+# demo data on first boot and ingests the knowledge base (see entrypoint.sh).
+
+services:
+  db:
+    # pgvector/pgvector ships the extension pre-built; the API's first
+    # migration runs CREATE EXTENSION IF NOT EXISTS vector.
+    image: pgvector/pgvector:pg16
+    container_name: copilot-db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-copilot}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-copilot}
+      POSTGRES_DB: ${POSTGRES_DB:-copilot}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-copilot} -d ${POSTGRES_DB:-copilot}"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: copilot-backend
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-copilot}:${POSTGRES_PASSWORD:-copilot}@db:5432/${POSTGRES_DB:-copilot}
+      FLASK_ENV: ${FLASK_ENV:-development}
+      SECRET_KEY: ${SECRET_KEY:-dev-secret-change-me}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173,http://127.0.0.1:5173}
+
+      # AI configuration. With no LLM_API_KEY the app runs in DEMO MODE,
+      # clearly labelled in the UI. It never fails to start.
+      AI_DEMO_MODE: ${AI_DEMO_MODE:-false}
+      LLM_PROVIDER: ${LLM_PROVIDER:-}
+      LLM_API_KEY: ${LLM_API_KEY:-}
+      LLM_MODEL: ${LLM_MODEL:-}
+      LLM_TEMPERATURE: ${LLM_TEMPERATURE:-0.1}
+      LLM_MAX_RETRIES: ${LLM_MAX_RETRIES:-2}
+      LLM_RETRY_BACKOFF_SECONDS: ${LLM_RETRY_BACKOFF_SECONDS:-0.5}
+
+      EMBEDDING_PROVIDER: ${EMBEDDING_PROVIDER:-hashing}
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL:-}
+      EMBEDDING_API_KEY: ${EMBEDDING_API_KEY:-}
+      # Must match the dimension the schema was migrated with.
+      EMBEDDING_DIMENSIONS: ${EMBEDDING_DIMENSIONS:-384}
+
+      RAG_TOP_K: ${RAG_TOP_K:-5}
+      RAG_MIN_SIMILARITY: ${RAG_MIN_SIMILARITY:-0.16}
+      AI_CONFIDENCE_THRESHOLD: ${AI_CONFIDENCE_THRESHOLD:-0.75}
+
+      KNOWLEDGE_BASE_DIR: /data/knowledge_base
+    volumes:
+      # Knowledge base and datasets are content, not code: mounting them means
+      # editing a procedure document and re-ingesting needs no rebuild.
+      - ./data:/data:ro
+    ports:
+      - "${BACKEND_PORT:-5001}:5001"
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        # Baked into the bundle at build time; empty means "same origin",
+        # which nginx proxies to the backend.
+        VITE_API_BASE_URL: /api
+    container_name: copilot-frontend
+    depends_on:
+      - backend
+    ports:
+      - "${FRONTEND_PORT:-5173}:80"
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
