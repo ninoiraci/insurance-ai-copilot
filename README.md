@@ -13,6 +13,8 @@ human approving every customer-facing reply.
 > **[docs/it/](docs/it/00-INDICE.md)**. English remains the source of truth;
 > where the two disagree, the code wins.
 
+![Conversation detail: the customer thread, the Customer 360 context and the AI Copilot analysis](docs/screenshots/conversation.png)
+
 ---
 
 ## 1. Why this project exists
@@ -230,7 +232,7 @@ insurance-ai-copilot/
 │   ├── knowledge_base/            # 10 synthetic procedure manuals (Spanish)
 │   ├── synthetic_cases/           # 8 scripted demo conversations
 │   └── evaluation/                # 60 labelled evaluation cases
-├── docs/                          # ARCHITECTURE · AI_PIPELINE · EVALUATION · SECURITY_AND_LIMITATIONS
+├── docs/                          # ARCHITECTURE · AI_PIPELINE · EVALUATION · SECURITY_AND_LIMITATIONS · screenshots
 ├── docker-compose.yml · .env.example · README.md
 ```
 
@@ -479,3 +481,18 @@ Full list: **[docs/SECURITY_AND_LIMITATIONS.md](docs/SECURITY_AND_LIMITATIONS.md
 | **Knowledge Base** | Ingested documents, chunk boundaries, and a **RAG Playground** showing retrieval with similarity scores |
 | **Evaluations** | Run the labelled suite; accuracy, safety recall, latency, and a per-case failure table |
 | **Audit Logs** | Append-only trail of every AI decision and human sign-off, filterable by action |
+
+**Prompt injection (`DEMO-08`).** The message is treated as data: retrieval is
+skipped, confidence drops and the case is routed to compliance for a human.
+
+![Prompt injection flagged by the deterministic rules](docs/screenshots/prompt-injection.png)
+
+**RAG Playground.** Retrieved chunks with their similarity scores. The banner
+states the limit of the local embeddings: they are lexical, not semantic.
+
+![RAG Playground with similarity scores](docs/screenshots/rag-playground.png)
+
+**Evaluations.** Metrics on the 60 labelled cases and the per-case table, here
+filtered to the failures, including missed reviews and false alarms.
+
+![Evaluation run on the labelled dataset](docs/screenshots/evaluations.png)
