@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { api } from '../api/client';
 import { useApi } from '../hooks/useApi';
 import { Badge, EmptyState, ErrorState, Loading, Panel } from '../components/ui';
-import { formatDateTime, humanise, type Tone } from '../utils/format';
+import { countLabel, formatDateTime, humanise, type Tone } from '../utils/format';
 
 function actionTone(action: string): Tone {
   if (action.includes('FAILED') || action.includes('INJECTION')) return 'danger';
@@ -65,7 +65,7 @@ export function AuditLogsPage() {
         </div>
       </Panel>
 
-      <Panel title="Trail" hint={data ? `${data.count} entries` : undefined} flush>
+      <Panel title="Trail" hint={data ? countLabel(data.count, 'entry', 'entries') : undefined} flush>
         {loading && <Loading />}
         {error && !loading && (
           <div style={{ padding: 16 }}>

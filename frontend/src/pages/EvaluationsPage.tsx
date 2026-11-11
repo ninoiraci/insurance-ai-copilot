@@ -18,7 +18,7 @@ import {
   Panel,
 } from '../components/ui';
 import type { EvaluationRun } from '../types/api';
-import { formatDateTime, humanise, percent } from '../utils/format';
+import { DISPLAY_LOCALE, countLabel, formatDateTime, humanise, percent } from '../utils/format';
 
 export function EvaluationsPage() {
   const { data, loading, error, refetch } = useApi(() => api.evaluations(), []);
@@ -29,7 +29,7 @@ export function EvaluationsPage() {
 
   const trigger = async () => {
     const result = await runEvaluation.run(
-      `manual run ${new Date().toLocaleString()}`,
+      `manual run ${new Date().toLocaleString(DISPLAY_LOCALE)}`,
     );
     if (result) {
       setSelectedId(result.id);
@@ -109,7 +109,7 @@ export function EvaluationsPage() {
           )}
 
           {data.items.length > 0 && (
-            <Panel title="Run history" hint={`${data.count} runs`} flush>
+            <Panel title="Run history" hint={countLabel(data.count, 'run')} flush>
               <div className="table-wrap">
                 <table className="table">
                   <thead>

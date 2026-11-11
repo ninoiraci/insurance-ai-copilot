@@ -6,6 +6,7 @@ import { useApi } from '../hooks/useApi';
 import { Badge, EmptyState, ErrorState, Loading, Panel, Stat } from '../components/ui';
 import {
   channelIcon,
+  countLabel,
   expiryTone,
   formatDate,
   formatDateTime,
@@ -137,7 +138,7 @@ export function CustomerDetailPage() {
         </Panel>
       </div>
 
-      <Panel title="Conversation history" hint={`${data.conversations.length} threads`} flush>
+      <Panel title="Conversation history" hint={countLabel(data.conversations.length, 'thread')} flush>
         {data.conversations.length === 0 ? (
           <EmptyState title="No conversations" />
         ) : (

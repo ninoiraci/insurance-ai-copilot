@@ -15,7 +15,7 @@ import { ConversationThread } from '../components/ConversationThread';
 import { Customer360 } from '../components/Customer360';
 import { Badge, ErrorState, Loading, Panel } from '../components/ui';
 import type { ReviewerAction } from '../types/api';
-import { channelIcon, formatDateTime, humanise, statusTone } from '../utils/format';
+import { channelIcon, countLabel, formatDateTime, humanise, statusTone } from '../utils/format';
 
 export function ConversationDetailPage() {
   const { conversationId } = useParams();
@@ -92,7 +92,7 @@ export function ConversationDetailPage() {
       <div className="workspace">
         <Panel
           title="Conversation"
-          hint={`${data.messages.length} messages`}
+          hint={countLabel(data.messages.length, 'message')}
           flush
         >
           <ConversationThread
@@ -127,7 +127,7 @@ export function ConversationDetailPage() {
       </div>
 
       {data.analyses.length > 1 && (
-        <Panel title="Analysis history" hint={`${data.analyses.length} runs`} flush>
+        <Panel title="Analysis history" hint={countLabel(data.analyses.length, 'run')} flush>
           <div className="table-wrap">
             <table className="table">
               <thead>

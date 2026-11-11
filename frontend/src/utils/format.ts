@@ -4,6 +4,9 @@ import type { Urgency } from '../types/api';
 
 export type Tone = 'neutral' | 'info' | 'success' | 'warning' | 'danger' | 'accent';
 
+// The interface is in English, so dates are too, whatever the browser locale.
+export const DISPLAY_LOCALE = 'en-GB';
+
 // Labels whose natural casing the generic rule would get wrong.
 const LABEL_OVERRIDES: Record<string, string> = {
   WHATSAPP: 'WhatsApp',
@@ -78,11 +81,16 @@ export function confidenceColor(confidence: number): string {
   return 'var(--danger)';
 }
 
+/** "1 message", "3 messages". */
+export function countLabel(count: number, singular: string, plural = `${singular}s`): string {
+  return `${count} ${count === 1 ? singular : plural}`;
+}
+
 export function formatDateTime(iso: string | null | undefined): string {
   if (!iso) return '—';
   const date = new Date(iso.endsWith('Z') ? iso : `${iso}Z`);
   if (Number.isNaN(date.getTime())) return iso;
-  return date.toLocaleString(undefined, {
+  return date.toLocaleString(DISPLAY_LOCALE, {
     day: '2-digit',
     month: 'short',
     hour: '2-digit',
@@ -94,7 +102,7 @@ export function formatDate(iso: string | null | undefined): string {
   if (!iso) return '—';
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return iso;
-  return date.toLocaleDateString(undefined, {
+  return date.toLocaleDateString(DISPLAY_LOCALE, {
     day: '2-digit',
     month: 'short',
     year: 'numeric',

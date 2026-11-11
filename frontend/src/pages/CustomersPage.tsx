@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { api } from '../api/client';
 import { useApi, useDebounced } from '../hooks/useApi';
 import { EmptyState, ErrorState, Loading, Panel } from '../components/ui';
-import { formatDate } from '../utils/format';
+import { countLabel, formatDate } from '../utils/format';
 
 export function CustomersPage() {
   const navigate = useNavigate();
@@ -51,7 +51,7 @@ export function CustomersPage() {
         </div>
       </Panel>
 
-      <Panel title="Customer book" hint={data ? `${data.count} customers` : undefined} flush>
+      <Panel title="Customer book" hint={data ? countLabel(data.count, 'customer') : undefined} flush>
         {loading && <Loading />}
         {error && !loading && (
           <div style={{ padding: 16 }}>
